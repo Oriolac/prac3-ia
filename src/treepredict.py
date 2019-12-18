@@ -1,12 +1,13 @@
 import sys
 from decisionnode import DecisionNode
 
+
 def read(file_name):
     file = open(file_name, 'r')
     part = []
     for line in file:
         example = line.split('\t')
-        example[3]= int(example[3])
+        example[3] = int(example[3])
         example[4] = example[4].strip()
         part.append(example)
     return part, len(part)
@@ -75,6 +76,8 @@ def decreaseofimpurity(total_imp, prop_l, left_imp, prop_r, right_imp):
 
 
 def get_columns(part):
+    """Retorna una llista de tuples amb totes les categories i els seus valors, sense
+    repeticions. Ex: [(0, 'slashdot'), ...]"""
     diff_columns = []
     num_columns = len(part[0]) - 1
     for column in range(num_columns):
@@ -82,6 +85,7 @@ def get_columns(part):
             if (column, part[row][column]) not in diff_columns:
                 diff_columns.append((column, part[row][column]))
     return diff_columns
+
 
 def buildtree(part, scoref=entropy, beta=0):
     if len(part) == 0:
@@ -126,17 +130,30 @@ def printtree(tree, indent=''):
         printtree(tree.fb, indent+'  ')
 
 
+def classify(obj, tree):
+    return tree.get_leaf_node(obj)
+
+
 if __name__ == '__main__':
+    # *** 1.1.1 ***
     # Read input file and save in [[]] and num of entries
     data_set, num_entries = read(sys.argv[1])
     # Get a dictionary with key: class_name, value: total
     class_dict = unique_counts(data_set)
     # Get Gini impurity
-    gini_impurity = gini_impurity(data_set)
+    gini = gini_impurity(data_set)
     # Get entropy
     entropy = entropy(data_set)
-    tree = buildtree(data_set)
+    tree = buildtree(data_set, scoref=gini_impurity)
     printtree(tree)
+
+    # *** 1.1.3 ***
+    # new_object = ['google', 'UK', 'yes', 25]
+    new_object = ['google', 'UK', 'no', 17]
+    print("Partition: " + str(classify(new_object, tree)))
+
+
+
 
 
 
