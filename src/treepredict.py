@@ -26,10 +26,11 @@ def read_car_data(file_name):
 def unique_counts(part):
     dict = {}
     for entry in part:
-        if entry[4] not in dict:
-            dict[entry[4]] = 1
+        last_col = len(entry)-1
+        if entry[last_col] not in dict:
+            dict[entry[last_col]] = 1
         else:
-            dict[entry[4]] = dict.get(entry[4]) + 1
+            dict[entry[last_col]] = dict.get(entry[last_col]) + 1
     return dict
 
 
@@ -141,8 +142,19 @@ def classify(obj, tree):
     return tree.get_leaf_node(obj)
 
 
-def test_performance(testset, trainingset):
-    print("hello")
+def test_performance(testset, testset_len, trainingset):
+    tree = buildtree(trainingset)
+    printtree(tree)
+    num_correct = 0
+    for object in testset:
+        real_result = object[len(object)-1]
+        result_dict = classify(object, tree)
+        obtained_result = list(result_dict.keys())[0]
+        if real_result == obtained_result:
+            num_correct += 1
+
+    return num_correct/testset_len
+
 
 
 def test_111():
@@ -155,19 +167,20 @@ def test_111():
     # Get entropy
     entr = entropy(data_set)
     tree = buildtree(data_set, scoref=gini_impurity)
-    printtree(tree)
+    #printtree(tree)
     return tree
 
 
 def test_113(tree):
-    # new_object = ['google', 'UK', 'yes', 25]
-    new_object = ['google', 'UK', 'no', 17]
-    print("Partition: " + str(classify(new_object, tree)))
+    new_object = ['google', 'UK', 'yes', 25]
+    # new_object = ['google', 'UK', 'no', 17]
+    print("Result partition: " + str(classify(new_object, tree)))
 
 
 def test_114():
-    train_data_set, train_num_entries = read_car_data("trainingset-car.data")
-    test_data_set, test_num_entries = read_car_data("testset-car.data")
+    train_data_set, train_num_entries = read_car_data("data_sets/trainingset-car.data")
+    test_data_set, test_num_entries = read_car_data("data_sets/testset-car.data")
+    print("Accuracy: " + str(test_performance(test_data_set, test_num_entries, train_data_set)))
 
 
 if __name__ == '__main__':
