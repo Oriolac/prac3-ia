@@ -12,8 +12,15 @@ def read(file_name):
         part.append(example)
     return part, len(part)
 
-    # TODO
-    pass
+
+def read_car_data(file_name):
+    file = open(file_name, 'r')
+    part = []
+    for line in file:
+        obj = line.split(',')
+        obj[6] = obj[6].strip()
+        part.append(obj)
+    return part, len(part)
 
 
 def unique_counts(part):
@@ -134,8 +141,11 @@ def classify(obj, tree):
     return tree.get_leaf_node(obj)
 
 
-if __name__ == '__main__':
-    # *** 1.1.1 ***
+def test_performance(testset, trainingset):
+    print("hello")
+
+
+def test_111():
     # Read input file and save in [[]] and num of entries
     data_set, num_entries = read(sys.argv[1])
     # Get a dictionary with key: class_name, value: total
@@ -143,14 +153,30 @@ if __name__ == '__main__':
     # Get Gini impurity
     gini = gini_impurity(data_set)
     # Get entropy
-    entropy = entropy(data_set)
+    entr = entropy(data_set)
     tree = buildtree(data_set, scoref=gini_impurity)
     printtree(tree)
+    return tree
 
-    # *** 1.1.3 ***
+
+def test_113(tree):
     # new_object = ['google', 'UK', 'yes', 25]
     new_object = ['google', 'UK', 'no', 17]
     print("Partition: " + str(classify(new_object, tree)))
+
+
+def test_114():
+    train_data_set, train_num_entries = read_car_data("trainingset-car.data")
+    test_data_set, test_num_entries = read_car_data("testset-car.data")
+
+
+if __name__ == '__main__':
+    # *** 1.1.1 ***
+    tree = test_111()
+    # *** 1.1.3 ***
+    test_113(tree)
+    # *** 1.1.4 ***
+    test_114()
 
 
 
