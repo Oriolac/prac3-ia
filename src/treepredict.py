@@ -144,7 +144,6 @@ def classify(obj, tree):
 
 def test_performance(testset, testset_len, trainingset):
     tree = buildtree(trainingset)
-    printtree(tree)
     num_correct = 0
     for object in testset:
         real_result = object[len(object)-1]
@@ -178,9 +177,25 @@ def test_113(tree):
 
 
 def test_114():
-    train_data_set, train_num_entries = read_car_data("data_sets/trainingset-car.data")
+    # Training set with 4 examples of each class
+    train_data_set1, train_num_entries1 = read_car_data("data_sets/trainingset-car1.data")
+    # Training set with 8 examples of each class
+    train_data_set2, train_num_entries2 = read_car_data("data_sets/trainingset-car2.data")
+    # Training set with 12 examples of each class
+    train_data_set3, train_num_entries3 = read_car_data("data_sets/trainingset-car3.data")
+    # Training set with 16 examples of each class
+    train_data_set4, train_num_entries4 = read_car_data("data_sets/trainingset-car4.data")
+    # Training set with 20 examples of each class
+    train_data_set5, train_num_entries5 = read_car_data("data_sets/trainingset-car5.data")
+    # Training set with 166 entries
+    train_data_set6, train_num_entries6 = read_car_data("data_sets/trainingset-car6.data")
     test_data_set, test_num_entries = read_car_data("data_sets/testset-car.data")
-    print("Accuracy: " + str(test_performance(test_data_set, test_num_entries, train_data_set)))
+    print("Accuracy 1: " + str(test_performance(test_data_set, test_num_entries, train_data_set1)) + ", entries: " + str(train_num_entries1))
+    print("Accuracy 2: " + str(test_performance(test_data_set, test_num_entries, train_data_set2)) + ", entries: " + str(train_num_entries2))
+    print("Accuracy 3: " + str(test_performance(test_data_set, test_num_entries, train_data_set3)) + ", entries: " + str(train_num_entries3))
+    print("Accuracy 4: " + str(test_performance(test_data_set, test_num_entries, train_data_set4)) + ", entries: " + str(train_num_entries4))
+    print("Accuracy 5: " + str(test_performance(test_data_set, test_num_entries, train_data_set5)) + ", entries: " + str(train_num_entries5))
+    print("Accuracy 6: " + str(test_performance(test_data_set, test_num_entries, train_data_set6)) + ", entries: " + str(train_num_entries6))
 
 
 if __name__ == '__main__':
