@@ -22,7 +22,6 @@ def read_car_data(file_name):
         part.append(obj)
     return part, len(part)
 
-
 def unique_counts(part):
     dict = {}
     for entry in part:
@@ -123,6 +122,52 @@ def buildtree(part, scoref=entropy, beta=0):
     else:
         return DecisionNode(results=unique_counts(part))
 
+def get_column_values(part, column):
+    values = []
+    for row in part:
+        if not row[column] in values:
+            values.append(row[column])
+    return values
+
+def get_best_gain(part, scoref):
+    best_gain = 0
+    best_criteria = None
+    best_sets = None
+    current_score = scoref(part)
+    for column in range(0, len(part[0])- 1):
+        values = get_column_values(part, column)
+        for value in values:
+            set1, set2 = divideset(part, column, value)
+            gain = current_score - len(set1)/len(part) * scoref(set1) - len(set2)/len(part) * scoref(set2)
+            if best_gain < gain:
+                best_gain = gain
+                best_criteria = (column, value)
+                best_sets = (set1, set2)
+    return best_gain, best_criteria, best_sets
+        
+def it_buildtree(part, scoref=entropy, beta=0):
+    stack=[]
+    stackDef = []
+    stack.append(part)
+    while len(stack) != 0:
+        conjunt = stack.pop(-1)
+        best_gain, best_criteria, best_sets = get_best_gain(conjunt, scoref)
+        if best_sets != None and best_sets[0] != None:
+            stack.append(best_sets[0])
+        if best_sets != None and best_sets[1] != None:
+            stack.append(best_sets[1])
+        stackDef.append((best_gain, best_criteria, best_sets, conjunt))
+
+    accumulativeNodes = []
+    while len(stackDef) != 0:
+        best_gain, best_criteria, best_sets, conjunt = stackDef.pop(-1)
+        if best_gain > beta:
+            tree2 = accumulativeNodes.pop(-1)
+            tree1 = accumulativeNodes.pop(-1)
+            accumulativeNodes.append(DecisionNode(col=best_criteria[0], value=best_criteria[1], tb=tree1, fb=tree2))
+        else:
+            accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
+    return accumulativeNodes.pop()
 
 def printtree(tree, indent=''):
     # Is this a leaf node?
@@ -205,8 +250,6 @@ if __name__ == '__main__':
     test_113(tree)
     # *** 1.1.4 ***
     test_114()
-
-
 
 
 
