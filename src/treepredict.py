@@ -6,14 +6,10 @@ def read(file_name):
     part = []
     for line in file:
         example = line.split('\t')
-        example[3]= int(example[3])
+        example[3] = int(example[3])
         example[4] = example[4].strip()
         part.append(example)
     return part, len(part)
-
-    # TODO
-    pass
-
 
 def unique_counts(part):
     dict = {}
@@ -112,6 +108,56 @@ def buildtree(part, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part))
 
 
+def buildtree_it(part, scoref=entropy, beta=0):
+    stack=[]
+    stack.append((part, None))
+    while len(stack) != 0:
+        part, parent = stack.pop()
+        if len(part) != 0:
+            current_score = scoref(part)
+
+            columns_to_analize = get_columns(part)
+
+            # Set up some variables to track the best criteria
+            best_gain = 0
+            best_criteria = None
+            best_sets = None
+
+            for elem in columns_to_analize:
+                t_set, f_set = divideset(part, elem[0], elem[1])
+                p_true = len(t_set)/len(part)
+                p_false = len(f_set)/len(part)
+                current_gain = decreaseofimpurity(current_score, p_true, scoref(t_set), p_false, scoref(f_set))
+
+                if current_gain > best_gain:
+                    best_gain = current_gain
+                    best_criteria = elem
+                    best_sets = (t_set, f_set)
+
+            if best_gain >= beta and best_criteria is not None:
+                current_node = DecisionNode(best_criteria[0], best_criteria[1], None)
+                if parent != None:
+                    if parent.tb != None:
+                        parent.tb = current_node
+                    else:
+                        parent.fb = current_node
+                stack.append((best_sets[0], current_node))
+                stack.append((best_sets[0], current_node))
+                #return DecisionNode(best_criteria[0], best_criteria[1], None, buildtree(best_sets[0], scoref, beta), buildtree(best_sets[1], scoref, beta))
+            else:
+                current_node = DecisionNode(results=unique_counts(part))
+                if parent != None:
+                    if parent.tb != None:
+                        parent.tb = current_node
+                    else:
+                        parent.fb = current_node
+                #return DecisionNode(results=unique_counts(part))
+                else:
+                    superparent = current_node
+    return superparent
+        
+
+
 def printtree(tree, indent=''):
     # Is this a leaf node?
     if tree.results is not None:
@@ -132,10 +178,10 @@ if __name__ == '__main__':
     # Get a dictionary with key: class_name, value: total
     class_dict = unique_counts(data_set)
     # Get Gini impurity
-    gini_impurity = gini_impurity(data_set)
+    gini = gini_impurity(data_set)
     # Get entropy
     entropy = entropy(data_set)
-    tree = buildtree(data_set)
+    tree = buildtree_it(data_set, scoref=gini_impurity)
     printtree(tree)
 
 
