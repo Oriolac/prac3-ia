@@ -1,6 +1,7 @@
 import sys
 from decisionnode import DecisionNode
 
+
 def read(file_name):
     file = open(file_name, 'r')
     part = []
@@ -11,13 +12,24 @@ def read(file_name):
         part.append(example)
     return part, len(part)
 
+
+def read_car_data(file_name):
+    file = open(file_name, 'r')
+    part = []
+    for line in file:
+        obj = line.split(',')
+        obj[6] = obj[6].strip()
+        part.append(obj)
+    return part, len(part)
+
 def unique_counts(part):
     dict = {}
     for entry in part:
-        if entry[4] not in dict:
-            dict[entry[4]] = 1
+        last_col = len(entry)-1
+        if entry[last_col] not in dict:
+            dict[entry[last_col]] = 1
         else:
-            dict[entry[4]] = dict.get(entry[4]) + 1
+            dict[entry[last_col]] = dict.get(entry[last_col]) + 1
     return dict
 
 
@@ -71,6 +83,8 @@ def decreaseofimpurity(total_imp, prop_l, left_imp, prop_r, right_imp):
 
 
 def get_columns(part):
+    """Retorna una llista de tuples amb totes les categories i els seus valors, sense
+    repeticions. Ex: [(0, 'slashdot'), ...]"""
     diff_columns = []
     num_columns = len(part[0]) - 1
     for column in range(num_columns):
@@ -78,6 +92,7 @@ def get_columns(part):
             if (column, part[row][column]) not in diff_columns:
                 diff_columns.append((column, part[row][column]))
     return diff_columns
+
 
 def buildtree(part, scoref=entropy, beta=0):
     if len(part) == 0:
@@ -168,7 +183,25 @@ def printtree(tree, indent=''):
         printtree(tree.fb, indent+'  ')
 
 
-if __name__ == '__main__':
+def classify(obj, tree):
+    return tree.get_leaf_node(obj)
+
+
+def test_performance(testset, testset_len, trainingset):
+    tree = buildtree(trainingset)
+    num_correct = 0
+    for object in testset:
+        real_result = object[len(object)-1]
+        result_dict = classify(object, tree)
+        obtained_result = list(result_dict.keys())[0]
+        if real_result == obtained_result:
+            num_correct += 1
+
+    return num_correct/testset_len
+
+
+
+def test_111():
     # Read input file and save in [[]] and num of entries
     data_set, num_entries = read(sys.argv[1])
     # Get a dictionary with key: class_name, value: total
@@ -176,9 +209,48 @@ if __name__ == '__main__':
     # Get Gini impurity
     gini = gini_impurity(data_set)
     # Get entropy
-    entropy = entropy(data_set)
-    tree = buildtree_it(data_set, scoref=gini_impurity)
-    printtree(tree)
+    entr = entropy(data_set)
+    tree = buildtree(data_set, scoref=gini_impurity)
+    #printtree(tree)
+    return tree
+
+
+def test_113(tree):
+    new_object = ['google', 'UK', 'yes', 25]
+    # new_object = ['google', 'UK', 'no', 17]
+    print("Result partition: " + str(classify(new_object, tree)))
+
+
+def test_114():
+    # Training set with 4 examples of each class
+    train_data_set1, train_num_entries1 = read_car_data("data_sets/trainingset-car1.data")
+    # Training set with 8 examples of each class
+    train_data_set2, train_num_entries2 = read_car_data("data_sets/trainingset-car2.data")
+    # Training set with 12 examples of each class
+    train_data_set3, train_num_entries3 = read_car_data("data_sets/trainingset-car3.data")
+    # Training set with 16 examples of each class
+    train_data_set4, train_num_entries4 = read_car_data("data_sets/trainingset-car4.data")
+    # Training set with 20 examples of each class
+    train_data_set5, train_num_entries5 = read_car_data("data_sets/trainingset-car5.data")
+    # Training set with 166 entries
+    train_data_set6, train_num_entries6 = read_car_data("data_sets/trainingset-car6.data")
+    test_data_set, test_num_entries = read_car_data("data_sets/testset-car.data")
+    print("Accuracy 1: " + str(test_performance(test_data_set, test_num_entries, train_data_set1)) + ", entries: " + str(train_num_entries1))
+    print("Accuracy 2: " + str(test_performance(test_data_set, test_num_entries, train_data_set2)) + ", entries: " + str(train_num_entries2))
+    print("Accuracy 3: " + str(test_performance(test_data_set, test_num_entries, train_data_set3)) + ", entries: " + str(train_num_entries3))
+    print("Accuracy 4: " + str(test_performance(test_data_set, test_num_entries, train_data_set4)) + ", entries: " + str(train_num_entries4))
+    print("Accuracy 5: " + str(test_performance(test_data_set, test_num_entries, train_data_set5)) + ", entries: " + str(train_num_entries5))
+    print("Accuracy 6: " + str(test_performance(test_data_set, test_num_entries, train_data_set6)) + ", entries: " + str(train_num_entries6))
+
+
+if __name__ == '__main__':
+    # *** 1.1.1 ***
+    tree = test_111()
+    # *** 1.1.3 ***
+    test_113(tree)
+    # *** 1.1.4 ***
+    test_114()
+
 
 
 
