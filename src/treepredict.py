@@ -25,6 +25,7 @@ def read_car_data(file_name):
         part.append(obj)
     return part, len(part)
 
+
 def unique_counts(part):
     dict = {}
     for entry in part:
@@ -125,12 +126,14 @@ def buildtree(part, scoref=entropy, beta=0):
     else:
         return DecisionNode(results=unique_counts(part))
 
+
 def get_column_values(part, column):
     values = []
     for row in part:
         if not row[column] in values:
             values.append(row[column])
     return values
+
 
 def get_best_gain(part, scoref):
     best_gain = 0
@@ -147,9 +150,10 @@ def get_best_gain(part, scoref):
                 best_criteria = (column, value)
                 best_sets = (set1, set2)
     return best_gain, best_criteria, best_sets
-        
+
+
 def it_buildtree(part, scoref=entropy, beta=0):
-    stack=[]
+    stack = []
     stackDef = []
     stack.append(part)
     while len(stack) != 0:
@@ -171,6 +175,7 @@ def it_buildtree(part, scoref=entropy, beta=0):
         else:
             accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
     return accumulativeNodes.pop()
+
 
 def printtree(tree, indent=''):
     # Is this a leaf node?
