@@ -237,6 +237,7 @@ def buildtree_prune(part, scoref=entropy, beta=0):
 
 def mergedicts (dict1, dict2):
     dict = {}
+
     for key in dict1:
         dict[key] = dict1[key]
     for key in dict2:
@@ -247,44 +248,64 @@ def mergedicts (dict1, dict2):
     return dict
 
 
+def entropy_dict(dict):
+    from math import log
+    num_entries = num_prototypes(dict)
+    key_list = dict.keys()
+    sum = 0
+    for key in key_list:
+        prob = dict.get(key)/num_entries
+        log2 = log(prob, 2)
+        sum += prob*log2
+    return -sum
+
+
 def prunetree(tree, threshold):
-    if tree.results is None:
-        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold), prunetree(tree.get_child(False), threshold))
-    elif tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
+    if tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
+        #print("Parent with leaf childs")
         tbranch_entropy = entropy(tree.get_child(True).results)
         fbranch_entropy = entropy(tree.get_child(False).results)
         merged_dicts = mergedicts(tree.get_child(True).results, tree.get_child(False).results)
-        union_entropy = entropy(merged_dicts)
-        print(tbranch_entropy)
-        print(fbranch_entropy)
-        print(tbranch_entropy)
-        if union_entropy > tbranch_entropy+fbranch_entropy:
+        union_entropy = entropy_dict(merged_dicts)
+        sum_entropies = tbranch_entropy+fbranch_entropy
+        if union_entropy > sum_entropies + threshold:
+            print(tbranch_entropy)
+            print(fbranch_entropy)
+            print(union_entropy)
+            print("threshold: ", float(sum_entropies+threshold))
+            print("Pruned !")
+            print("col: ", tree.col)
+            print("val: ", tree.value)
             return DecisionNode(results=merged_dicts)
         else:
+            #print("Not pruned!")
             return tree
+    elif tree.results is None:
+        #print("Internal node")
+        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold),
+                            prunetree(tree.get_child(False), threshold))
 
     else:
-        return DecisionNode()
-
-
+        #print("Leaf node")
+        return tree
 
 
 def test_116():
-    train_data_set6, train_num_entries6 = read_car_data("data_sets/trainingset-car6.data")
+    train_data_set, train_num_entries = read_car_data("data_sets/trainingset-car3.data")
     # Build completely the decision tree
-    tree = buildtree_prune(train_data_set6)
+    tree = buildtree_prune(train_data_set)
     printtree(tree)
-    pruned_tree = prunetree(tree, 0)
+    pruned_tree = prunetree(tree, 0.4)
     printtree(pruned_tree)
 
 
 if __name__ == '__main__':
     # *** 1.1.1 ***
-    #tree = test_111()
+    # tree = test_111()
     # *** 1.1.3 ***
     #test_113(tree)
     # *** 1.1.4 ***
-    test_114()
+    #test_114()
     # *** 1.1.6 ***
     test_116()
 
