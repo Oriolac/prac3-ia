@@ -155,7 +155,6 @@ def test_performance(testset, testset_len, trainingset):
     return num_correct/testset_len
 
 
-
 def test_111():
     # Read input file and save in [[]] and num of entries
     data_set, num_entries = read(sys.argv[1])
@@ -198,13 +197,96 @@ def test_114():
     print("Accuracy 6: " + str(test_performance(test_data_set, test_num_entries, train_data_set6)) + ", entries: " + str(train_num_entries6))
 
 
+def num_prototypes(dict):
+    """Returns the total number of prototypes in a dictionary"""
+    sum = 0
+    for entry in dict:
+        sum += dict[entry]
+
+    return sum
+
+
+def buildtree_prune(part, scoref=entropy, beta=0):
+    if len(part) == 0:
+        return DecisionNode()
+    current_score = scoref(part)
+
+    columns_to_analize = get_columns(part)
+
+    # Set up some variables to track the best criteria
+    best_gain = 0
+    best_criteria = None
+    best_sets = None
+
+    for elem in columns_to_analize:
+        t_set, f_set = divideset(part, elem[0], elem[1])
+        p_true = len(t_set)/len(part)
+        p_false = len(f_set)/len(part)
+        current_gain = decreaseofimpurity(current_score, p_true, scoref(t_set), p_false, scoref(f_set))
+
+        if current_gain > best_gain:
+            best_gain = current_gain
+            best_criteria = elem
+            best_sets = (t_set, f_set)
+
+    if best_gain >= beta and best_criteria is not None and num_prototypes(unique_counts(part)) >= 5:
+        return DecisionNode(best_criteria[0], best_criteria[1], None, buildtree_prune(best_sets[0], scoref, beta), buildtree_prune(best_sets[1], scoref, beta))
+    else:
+        return DecisionNode(results=unique_counts(part))
+
+
+def mergedicts (dict1, dict2):
+    dict = {}
+    for key in dict1:
+        dict[key] = dict1[key]
+    for key in dict2:
+        if key in dict:
+            dict[key] += dict2[key]
+        else:
+            dict[key] = dict2[key]
+    return dict
+
+
+def prunetree(tree, threshold):
+    if tree.results is None:
+        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold), prunetree(tree.get_child(False), threshold))
+    elif tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
+        tbranch_entropy = entropy(tree.get_child(True).results)
+        fbranch_entropy = entropy(tree.get_child(False).results)
+        merged_dicts = mergedicts(tree.get_child(True).results, tree.get_child(False).results)
+        union_entropy = entropy(merged_dicts)
+        print(tbranch_entropy)
+        print(fbranch_entropy)
+        print(tbranch_entropy)
+        if union_entropy > tbranch_entropy+fbranch_entropy:
+            return DecisionNode(results=merged_dicts)
+        else:
+            return tree
+
+    else:
+        return DecisionNode()
+
+
+
+
+def test_116():
+    train_data_set6, train_num_entries6 = read_car_data("data_sets/trainingset-car6.data")
+    # Build completely the decision tree
+    tree = buildtree_prune(train_data_set6)
+    printtree(tree)
+    pruned_tree = prunetree(tree, 0)
+    printtree(pruned_tree)
+
+
 if __name__ == '__main__':
     # *** 1.1.1 ***
-    tree = test_111()
+    #tree = test_111()
     # *** 1.1.3 ***
-    test_113(tree)
+    #test_113(tree)
     # *** 1.1.4 ***
     test_114()
+    # *** 1.1.6 ***
+    test_116()
 
 
 

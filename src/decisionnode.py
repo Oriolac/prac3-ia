@@ -32,6 +32,8 @@ class DecisionNode:
 
     def get_child(self, branch):
         if branch is True:
+            if self.tb is None:
+                return DecisionNode()
             col = self.tb.get_column()
             val = self.tb.get_value()
             result = self.tb.get_result()
@@ -39,6 +41,8 @@ class DecisionNode:
             fb = self.tb.get_false_branch()
             return DecisionNode(col, val, result, tb, fb)
         else:
+            if self.fb is None:
+                return DecisionNode()
             col = self.fb.get_column()
             val = self.fb.get_value()
             result = self.fb.get_result()
@@ -54,3 +58,6 @@ class DecisionNode:
                 return self.get_child(True).get_leaf_node(obj)
             else:
                 return self.get_child(False).get_leaf_node(obj)
+
+    def is_leaf_node(self):
+        return self.results is not None
