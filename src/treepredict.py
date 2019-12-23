@@ -1,6 +1,9 @@
 import sys
 from decisionnode import DecisionNode
 
+global pruned
+pruned = 0
+
 
 def read(file_name):
     file = open(file_name, 'r')
@@ -261,51 +264,58 @@ def entropy_dict(dict):
 
 
 def prunetree(tree, threshold):
+    global pruned
     if tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
-        #print("Parent with leaf childs")
+        # print("Parent with leaf childs")
         tbranch_entropy = entropy(tree.get_child(True).results)
         fbranch_entropy = entropy(tree.get_child(False).results)
         merged_dicts = mergedicts(tree.get_child(True).results, tree.get_child(False).results)
         union_entropy = entropy_dict(merged_dicts)
         sum_entropies = tbranch_entropy+fbranch_entropy
         if union_entropy > sum_entropies + threshold:
-            print(tbranch_entropy)
-            print(fbranch_entropy)
-            print(union_entropy)
-            print("threshold: ", float(sum_entropies+threshold))
-            print("Pruned !")
-            print("col: ", tree.col)
-            print("val: ", tree.value)
+            # print("Pruned !")
+            pruned += 1
             return DecisionNode(results=merged_dicts)
         else:
-            #print("Not pruned!")
+            # print("Not pruned!")
             return tree
     elif tree.results is None:
-        #print("Internal node")
+        # print("Internal node")
         return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold),
                             prunetree(tree.get_child(False), threshold))
 
     else:
-        #print("Leaf node")
+        # print("Leaf node")
         return tree
 
 
 def test_116():
-    train_data_set, train_num_entries = read_car_data("data_sets/trainingset-car3.data")
+    global pruned
+    times_pruned = 0
+    train_data_set, train_num_entries = read_car_data("data_sets/complete_trainingset-car.data")
     # Build completely the decision tree
     tree = buildtree_prune(train_data_set)
     printtree(tree)
-    pruned_tree = prunetree(tree, 0.4)
+    # Prune the tree until it is not possible to delete more leaves
+    pruned_tree = tree
+    threshold = 0.4
+    pruned_tree = prunetree(pruned_tree, threshold)
+    while pruned > 0:
+        times_pruned += 1
+        pruned = 0
+        pruned_tree = prunetree(pruned_tree, threshold)
+
     printtree(pruned_tree)
+    print("Times tree pruned: ", times_pruned)
 
 
 if __name__ == '__main__':
     # *** 1.1.1 ***
     # tree = test_111()
     # *** 1.1.3 ***
-    #test_113(tree)
+    # test_113(tree)
     # *** 1.1.4 ***
-    #test_114()
+    # test_114()
     # *** 1.1.6 ***
     test_116()
 
