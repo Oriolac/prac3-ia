@@ -1,5 +1,6 @@
 import sys
 from decisionnode import DecisionNode
+import clusters
 
 global pruned
 pruned = 0
@@ -359,6 +360,23 @@ def test_116():
     print("Times tree pruned: ", times_pruned)
 
 
+def test_121(num_exec=10):
+    blognames, words, data = clusters.readfile('blogdata.txt')
+
+    min_distance = sys.float_info.max
+    best_kclust = None
+    # Restarting policies
+    for _ in range(num_exec):
+        kclust, sum_distances = clusters.kcluster(data, k=10)
+        print("Current distance: ", sum_distances)
+        if sum_distances < min_distance:
+            best_kclust = kclust
+            min_distance = sum_distances
+    print("Best distance: ", min_distance)
+    print("Best kcluster configuration: ")
+    print(best_kclust)
+
+
 if __name__ == '__main__':
     # *** 1.1.1 ***
     # tree = test_111()
@@ -367,7 +385,10 @@ if __name__ == '__main__':
     # *** 1.1.4 ***
     # test_114()
     # *** 1.1.6 ***
-    test_116()
+    # test_116()
+    # *** 1.2.1 ***
+    test_121()
+
 
 
 
