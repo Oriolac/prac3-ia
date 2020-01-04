@@ -169,6 +169,54 @@ def it_buildtree(part, scoref=entropy, beta=0):
             accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
     return accumulativeNodes.pop()
 
+def get_best_gain2(part, scoref):
+    best_gain = 0
+    best_criteria = None
+    best_sets = None
+
+    current_score = scoref(part)
+    columns_to_analize = get_columns(part)
+
+    for elem in columns_to_analize:
+        t_set, f_set = divideset(part, elem[0], elem[1])
+        p_true = len(t_set)/len(part)
+        p_false = len(f_set)/len(part)
+
+        current_gain = decreaseofimpurity(current_score, p_true, scoref(t_set), p_false, scoref(f_set))
+
+        if current_gain > best_gain:
+            best_gain = current_gain
+            best_criteria = elem
+            best_sets = (t_set, f_set)
+    
+    return best_gain, best_criteria, best_sets
+
+def it_buildtree2(part, scoref=entropy, beta=0):
+    stack = []
+    stack.append((part, None))
+    while len(stack) != 0:
+        part, parent = stack.pop()
+        if len(part) != 0:
+
+            best_gain, best_criteria, best_sets = get_best_gain2(part, scoref)
+            
+            if best_gain >= beta and best_criteria is not None:
+                current_node = DecisionNode(col=best_criteria[0], value=best_criteria[1])
+                stack.append((best_sets[0], current_node))
+                stack.append((best_sets[0], current_node))
+            else:
+                current_node = DecisionNode(results=unique_counts(part))
+            if parent != None:
+                if parent.tb == None:
+                    parent.tb = current_node
+                else:
+                    parent.fb = current_node
+            if parent == None:
+                superparent = current_node
+    return superparent
+
+
+
 def printtree(tree, indent=''):
     # Is this a leaf node?
     if tree.results is not None:
