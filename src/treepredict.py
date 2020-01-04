@@ -1,5 +1,6 @@
 import sys
 from decisionnode import DecisionNode
+import clusters
 
 global pruned
 pruned = 0
@@ -24,6 +25,7 @@ def read_car_data(file_name):
         obj[6] = obj[6].strip()
         part.append(obj)
     return part, len(part)
+
 
 def unique_counts(part):
     dict = {}
@@ -125,12 +127,14 @@ def buildtree(part, scoref=entropy, beta=0):
     else:
         return DecisionNode(results=unique_counts(part))
 
+
 def get_column_values(part, column):
     values = []
     for row in part:
         if not row[column] in values:
             values.append(row[column])
     return values
+
 
 def get_best_gain(part, scoref):
     best_gain = 0
@@ -147,9 +151,10 @@ def get_best_gain(part, scoref):
                 best_criteria = (column, value)
                 best_sets = (set1, set2)
     return best_gain, best_criteria, best_sets
-        
+
+
 def it_buildtree(part, scoref=entropy, beta=0):
-    stack=[]
+    stack = []
     stackDef = []
     stack.append(part)
     while len(stack) != 0:
@@ -171,6 +176,7 @@ def it_buildtree(part, scoref=entropy, beta=0):
         else:
             accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
     return accumulativeNodes.pop()
+
 
 def get_best_gain2(part, scoref):
     best_gain = 0
@@ -217,7 +223,6 @@ def it_buildtree2(part, scoref=entropy, beta=0):
             if parent == None:
                 superparent = current_node
     return superparent
-
 
 
 def printtree(tree, indent=''):
@@ -402,6 +407,23 @@ def test_116():
     print("Times tree pruned: ", times_pruned)
 
 
+def test_121(num_exec=10):
+    blognames, words, data = clusters.readfile('blogdata.txt')
+
+    min_distance = sys.float_info.max
+    best_kclust = None
+    # Restarting policies
+    for _ in range(num_exec):
+        kclust, sum_distances = clusters.kcluster(data, k=10)
+        print("Current distance: ", sum_distances)
+        if sum_distances < min_distance:
+            best_kclust = kclust
+            min_distance = sum_distances
+    print("Best distance: ", min_distance)
+    print("Best kcluster configuration: ")
+    print(best_kclust)
+
+
 if __name__ == '__main__':
     # *** 1.1.1 ***
     # tree = test_111()
@@ -410,7 +432,10 @@ if __name__ == '__main__':
     # *** 1.1.4 ***
     # test_114()
     # *** 1.1.6 ***
-    test_116()
+    # test_116()
+    # *** 1.2.1 ***
+    test_121()
+
 
 
 
