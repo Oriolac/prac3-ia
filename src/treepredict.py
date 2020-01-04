@@ -1,6 +1,9 @@
 import sys
 from decisionnode import DecisionNode
 
+global pruned
+pruned = 0
+
 
 def read(file_name):
     file = open(file_name, 'r')
@@ -248,7 +251,6 @@ def test_performance(testset, testset_len, trainingset):
     return num_correct/testset_len
 
 
-
 def test_111():
     # Read input file and save in [[]] and num of entries
     data_set, num_entries = read(sys.argv[1])
@@ -291,13 +293,124 @@ def test_114():
     print("Accuracy 6: " + str(test_performance(test_data_set, test_num_entries, train_data_set6)) + ", entries: " + str(train_num_entries6))
 
 
+def num_prototypes(dict):
+    """Returns the total number of prototypes in a dictionary"""
+    sum = 0
+    for entry in dict:
+        sum += dict[entry]
+
+    return sum
+
+
+def buildtree_prune(part, scoref=entropy, beta=0):
+    if len(part) == 0:
+        return DecisionNode()
+    current_score = scoref(part)
+
+    columns_to_analize = get_columns(part)
+
+    # Set up some variables to track the best criteria
+    best_gain = 0
+    best_criteria = None
+    best_sets = None
+
+    for elem in columns_to_analize:
+        t_set, f_set = divideset(part, elem[0], elem[1])
+        p_true = len(t_set)/len(part)
+        p_false = len(f_set)/len(part)
+        current_gain = decreaseofimpurity(current_score, p_true, scoref(t_set), p_false, scoref(f_set))
+
+        if current_gain > best_gain:
+            best_gain = current_gain
+            best_criteria = elem
+            best_sets = (t_set, f_set)
+
+    if best_gain >= beta and best_criteria is not None and num_prototypes(unique_counts(part)) >= 5:
+        return DecisionNode(best_criteria[0], best_criteria[1], None, buildtree_prune(best_sets[0], scoref, beta), buildtree_prune(best_sets[1], scoref, beta))
+    else:
+        return DecisionNode(results=unique_counts(part))
+
+
+def mergedicts (dict1, dict2):
+    dict = {}
+
+    for key in dict1:
+        dict[key] = dict1[key]
+    for key in dict2:
+        if key in dict:
+            dict[key] += dict2[key]
+        else:
+            dict[key] = dict2[key]
+    return dict
+
+
+def entropy_dict(dict):
+    from math import log
+    num_entries = num_prototypes(dict)
+    key_list = dict.keys()
+    sum = 0
+    for key in key_list:
+        prob = dict.get(key)/num_entries
+        log2 = log(prob, 2)
+        sum += prob*log2
+    return -sum
+
+
+def prunetree(tree, threshold):
+    global pruned
+    if tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
+        # print("Parent with leaf childs")
+        tbranch_entropy = entropy(tree.get_child(True).results)
+        fbranch_entropy = entropy(tree.get_child(False).results)
+        merged_dicts = mergedicts(tree.get_child(True).results, tree.get_child(False).results)
+        union_entropy = entropy_dict(merged_dicts)
+        sum_entropies = tbranch_entropy+fbranch_entropy
+        if union_entropy > sum_entropies + threshold:
+            # print("Pruned !")
+            pruned += 1
+            return DecisionNode(results=merged_dicts)
+        else:
+            # print("Not pruned!")
+            return tree
+    elif tree.results is None:
+        # print("Internal node")
+        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold),
+                            prunetree(tree.get_child(False), threshold))
+
+    else:
+        # print("Leaf node")
+        return tree
+
+
+def test_116():
+    global pruned
+    times_pruned = 0
+    train_data_set, train_num_entries = read_car_data("data_sets/complete_trainingset-car.data")
+    # Build completely the decision tree
+    tree = buildtree_prune(train_data_set)
+    printtree(tree)
+    # Prune the tree until it is not possible to delete more leaves
+    pruned_tree = tree
+    threshold = 0.4
+    pruned_tree = prunetree(pruned_tree, threshold)
+    while pruned > 0:
+        times_pruned += 1
+        pruned = 0
+        pruned_tree = prunetree(pruned_tree, threshold)
+
+    printtree(pruned_tree)
+    print("Times tree pruned: ", times_pruned)
+
+
 if __name__ == '__main__':
     # *** 1.1.1 ***
-    tree = test_111()
+    # tree = test_111()
     # *** 1.1.3 ***
-    test_113(tree)
+    # test_113(tree)
     # *** 1.1.4 ***
-    test_114()
+    # test_114()
+    # *** 1.1.6 ***
+    test_116()
 
 
 
