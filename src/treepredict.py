@@ -39,7 +39,7 @@ def unique_counts(part):
 
 
 def gini_impurity(data_set):
-    num_entries = len(data_set)
+    num_entries = float(len(data_set))
     results = unique_counts(data_set)
     imp = 0
     key_list = results.keys()
@@ -53,7 +53,7 @@ def gini_impurity(data_set):
 
 def entropy(data_set):
     from math import log
-    num_entries = len(data_set)
+    num_entries = float(len(data_set))
     results = unique_counts(data_set)
     key_list = results.keys()
     sum = 0
@@ -218,7 +218,7 @@ def test_111():
     gini = gini_impurity(data_set)
     # Get entropy
     entr = entropy(data_set)
-    tree = buildtree(data_set, scoref=gini_impurity)
+    tree = buildtree(data_set, scoref=entropy)
     #printtree(tree)
     return tree
 
@@ -379,7 +379,7 @@ def test_121(num_exec=10):
 
 if __name__ == '__main__':
     # *** 1.1.1 ***
-    # tree = test_111()
+    tree = test_111()
     # *** 1.1.3 ***
     # test_113(tree)
     # *** 1.1.4 ***
@@ -387,7 +387,7 @@ if __name__ == '__main__':
     # *** 1.1.6 ***
     # test_116()
     # *** 1.2.1 ***
-    test_121()
+    # test_121()
 
 
 
