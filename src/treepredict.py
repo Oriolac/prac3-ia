@@ -61,7 +61,6 @@ def entropy(data_set):
         prob = results.get(key)/num_entries
         log2 = log(prob, 2)
         sum += prob*log2
-
     return -sum
 
 
