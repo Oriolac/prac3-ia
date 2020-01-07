@@ -49,7 +49,7 @@ def kcluster(rows, distance=pearson, k=4):
     for i in range(len(rows[0]))] for j in range(k)]
 
     lastmatches = None
-    for t in range(100):
+    for _ in range(100):
         bestmatches = [[] for i in range(k)]
 
         # Find which centroid is the closest for each row

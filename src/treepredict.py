@@ -140,48 +140,6 @@ def get_best_gain(part, scoref):
     best_gain = 0
     best_criteria = None
     best_sets = None
-    current_score = scoref(part)
-    for column in range(0, len(part[0])- 1):
-        values = get_column_values(part, column)
-        for value in values:
-            set1, set2 = divideset(part, column, value)
-            gain = current_score - len(set1)/len(part) * scoref(set1) - len(set2)/len(part) * scoref(set2)
-            if best_gain < gain:
-                best_gain = gain
-                best_criteria = (column, value)
-                best_sets = (set1, set2)
-    return best_gain, best_criteria, best_sets
-
-
-def it_buildtree(part, scoref=entropy, beta=0):
-    stack = []
-    stackDef = []
-    stack.append(part)
-    while len(stack) != 0:
-        conjunt = stack.pop(-1)
-        best_gain, best_criteria, best_sets = get_best_gain(conjunt, scoref)
-        if best_sets != None and best_sets[0] != None:
-            stack.append(best_sets[0])
-        if best_sets != None and best_sets[1] != None:
-            stack.append(best_sets[1])
-        stackDef.append((best_gain, best_criteria, best_sets, conjunt))
-
-    accumulativeNodes = []
-    while len(stackDef) != 0:
-        best_gain, best_criteria, best_sets, conjunt = stackDef.pop(-1)
-        if best_gain > beta:
-            tree2 = accumulativeNodes.pop(-1)
-            tree1 = accumulativeNodes.pop(-1)
-            accumulativeNodes.append(DecisionNode(col=best_criteria[0], value=best_criteria[1], tb=tree1, fb=tree2))
-        else:
-            accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
-    return accumulativeNodes.pop()
-
-
-def get_best_gain2(part, scoref):
-    best_gain = 0
-    best_criteria = None
-    best_sets = None
 
     current_score = scoref(part)
     columns_to_analize = get_columns(part)
@@ -200,27 +158,27 @@ def get_best_gain2(part, scoref):
     
     return best_gain, best_criteria, best_sets
 
-def it_buildtree2(part, scoref=entropy, beta=0):
+def buildtree_it(part, scoref=entropy, beta=0):
     stack = []
     stack.append((part, None))
     while len(stack) != 0:
         part, parent = stack.pop()
         if len(part) != 0:
 
-            best_gain, best_criteria, best_sets = get_best_gain2(part, scoref)
+            best_gain, best_criteria, best_sets = get_best_gain(part, scoref)
             
             if best_gain >= beta and best_criteria is not None:
                 current_node = DecisionNode(col=best_criteria[0], value=best_criteria[1])
                 stack.append((best_sets[0], current_node))
-                stack.append((best_sets[0], current_node))
+                stack.append((best_sets[1], current_node))
             else:
                 current_node = DecisionNode(results=unique_counts(part))
             if parent != None:
-                if parent.tb == None:
-                    parent.tb = current_node
-                else:
+                if parent.fb == None:
                     parent.fb = current_node
-            if parent == None:
+                else:
+                    parent.tb = current_node
+            else:
                 superparent = current_node
     return superparent
 
@@ -258,16 +216,30 @@ def test_performance(testset, testset_len, trainingset):
 
 def test_111():
     # Read input file and save in [[]] and num of entries
-    data_set, num_entries = read(sys.argv[1])
+    data_set, _ = read(sys.argv[1])
     # Get a dictionary with key: class_name, value: total
-    class_dict = unique_counts(data_set)
+    unique_counts(data_set)
     # Get Gini impurity
-    gini = gini_impurity(data_set)
+    gini_impurity(data_set)
     # Get entropy
-    entr = entropy(data_set)
+    entropy(data_set)
     tree = buildtree(data_set, scoref=gini_impurity)
     #printtree(tree)
     return tree
+
+def test_112():
+    # Read input file and save in [[]] and num of entries
+    data_set, _ = read(sys.argv[1])
+    # Get a dictionary with key: class_name, value: total
+    unique_counts(data_set)
+    # Get Gini impurity
+    gini_impurity(data_set)
+    # Get entropy
+    entropy(data_set)
+    tree = buildtree_it(data_set, scoref=gini_impurity)
+    #printtree(tree)
+    return tree
+
 
 
 def test_113(tree):
@@ -426,7 +398,11 @@ def test_121(num_exec=10):
 
 if __name__ == '__main__':
     # *** 1.1.1 ***
-    # tree = test_111()
+    tree = test_111()
+    printtree(tree)
+
+    tree = test_112()
+    printtree(tree)
     # *** 1.1.3 ***
     # test_113(tree)
     # *** 1.1.4 ***
