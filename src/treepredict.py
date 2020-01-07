@@ -158,7 +158,7 @@ def get_best_gain(part, scoref):
     
     return best_gain, best_criteria, best_sets
 
-def buildtree_it(part, scoref=entropy, beta=0):
+def buildtree_ite(part, scoref=entropy, beta=0):
     stack = []
     stack.append((part, None))
     while len(stack) != 0:
@@ -236,7 +236,7 @@ def test_112():
     gini_impurity(data_set)
     # Get entropy
     entropy(data_set)
-    tree = buildtree_it(data_set, scoref=gini_impurity)
+    tree = buildtree_ite(data_set, scoref=gini_impurity)
     #printtree(tree)
     return tree
 
