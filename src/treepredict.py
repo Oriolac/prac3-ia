@@ -205,6 +205,7 @@ def test_performance(testset, testset_len, trainingset):
     tree = buildtree(trainingset)
     num_correct = 0
     for object in testset:
+        print(object)
         real_result = object[len(object)-1]
         result_dict = classify(object, tree)
         obtained_result = list(result_dict.keys())[0]
