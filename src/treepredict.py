@@ -39,7 +39,7 @@ def unique_counts(part):
 
 
 def gini_impurity(data_set):
-    num_entries = len(data_set)
+    num_entries = float(len(data_set))
     results = unique_counts(data_set)
     imp = 0
     key_list = results.keys()
@@ -53,7 +53,7 @@ def gini_impurity(data_set):
 
 def entropy(data_set):
     from math import log
-    num_entries = len(data_set)
+    num_entries = float(len(data_set))
     results = unique_counts(data_set)
     key_list = results.keys()
     sum = 0
@@ -61,7 +61,6 @@ def entropy(data_set):
         prob = results.get(key)/num_entries
         log2 = log(prob, 2)
         sum += prob*log2
-
     return -sum
 
 
@@ -140,6 +139,48 @@ def get_best_gain(part, scoref):
     best_gain = 0
     best_criteria = None
     best_sets = None
+    current_score = scoref(part)
+    for column in range(0, len(part[0])- 1):
+        values = get_column_values(part, column)
+        for value in values:
+            set1, set2 = divideset(part, column, value)
+            gain = current_score - len(set1)/len(part) * scoref(set1) - len(set2)/len(part) * scoref(set2)
+            if best_gain < gain:
+                best_gain = gain
+                best_criteria = (column, value)
+                best_sets = (set1, set2)
+    return best_gain, best_criteria, best_sets
+
+
+def buildtree_ite(part, scoref=entropy, beta=0):
+    stack = []
+    stackDef = []
+    stack.append(part)
+    while len(stack) != 0:
+        conjunt = stack.pop(-1)
+        best_gain, best_criteria, best_sets = get_best_gain(conjunt, scoref)
+        if best_sets != None and best_sets[0] != None:
+            stack.append(best_sets[0])
+        if best_sets != None and best_sets[1] != None:
+            stack.append(best_sets[1])
+        stackDef.append((best_gain, best_criteria, best_sets, conjunt))
+
+    accumulativeNodes = []
+    while len(stackDef) != 0:
+        best_gain, best_criteria, best_sets, conjunt = stackDef.pop(-1)
+        if best_gain > beta:
+            tree2 = accumulativeNodes.pop(-1)
+            tree1 = accumulativeNodes.pop(-1)
+            accumulativeNodes.append(DecisionNode(col=best_criteria[0], value=best_criteria[1], tb=tree1, fb=tree2))
+        else:
+            accumulativeNodes.append(DecisionNode(results=unique_counts(conjunt)))
+    return accumulativeNodes.pop()
+
+
+def get_best_gain2(part, scoref):
+    best_gain = 0
+    best_criteria = None
+    best_sets = None
 
     current_score = scoref(part)
     columns_to_analize = get_columns(part)
@@ -157,6 +198,7 @@ def get_best_gain(part, scoref):
             best_sets = (t_set, f_set)
     
     return best_gain, best_criteria, best_sets
+
 
 def buildtree_ite(part, scoref=entropy, beta=0):
     stack = []
@@ -220,11 +262,20 @@ def test_111():
     # Get a dictionary with key: class_name, value: total
     unique_counts(data_set)
     # Get Gini impurity
-    gini_impurity(data_set)
+    gini = gini_impurity(data_set)
+    # print(gini)
     # Get entropy
-    entropy(data_set)
-    tree = buildtree(data_set, scoref=gini_impurity)
-    #printtree(tree)
+    entr = entropy(data_set)
+    # print(entr)
+    tree = buildtree(data_set, scoref=entropy)
+    printtree(tree)
+    return tree
+
+
+def test_112():
+    data_set, num_entries = read(sys.argv[1])
+    tree = buildtree_ite(data_set)
+    printtree(tree)
     return tree
 
 def test_112():
@@ -244,8 +295,9 @@ def test_112():
 
 def test_113(tree):
     new_object = ['google', 'UK', 'yes', 25]
-    #new_object = ['google', 'UK', 'no', 17]
-    print("Result partition: " + str(classify(new_object, tree)))
+    # new_object = ['google', 'UK', 'no', 17]
+    print("Result partition for " + str(new_object) + " is: " + str(classify(new_object, tree)))
+
 
 
 def test_114():
@@ -313,7 +365,7 @@ def buildtree_prune(part, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part))
 
 
-def mergedicts (dict1, dict2):
+def mergedicts(dict1, dict2):
     dict = {}
 
     for key in dict1:
@@ -338,7 +390,7 @@ def entropy_dict(dict):
     return -sum
 
 
-def prunetree(tree, threshold):
+def prune(tree, threshold):
     global pruned
     if tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
         # print("Parent with leaf childs")
@@ -356,8 +408,8 @@ def prunetree(tree, threshold):
             return tree
     elif tree.results is None:
         # print("Internal node")
-        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold),
-                            prunetree(tree.get_child(False), threshold))
+        return DecisionNode(tree.col, tree.value, None, prune(tree.get_child(True), threshold),
+                            prune(tree.get_child(False), threshold))
 
     else:
         # print("Leaf node")
@@ -374,11 +426,11 @@ def test_116():
     # Prune the tree until it is not possible to delete more leaves
     pruned_tree = tree
     threshold = 0.4
-    pruned_tree = prunetree(pruned_tree, threshold)
+    pruned_tree = prune(pruned_tree, threshold)
     while pruned > 0:
         times_pruned += 1
         pruned = 0
-        pruned_tree = prunetree(pruned_tree, threshold)
+        pruned_tree = prune(pruned_tree, threshold)
 
     printtree(pruned_tree)
     print("Times tree pruned: ", times_pruned)
@@ -390,9 +442,9 @@ def test_121(num_exec=10):
     min_distance = sys.float_info.max
     best_kclust = None
     # Restarting policies
-    for _ in range(num_exec):
+    for i in range(num_exec):
         kclust, sum_distances = clusters.kcluster(data, k=10)
-        print("Current distance: ", sum_distances)
+        print("Current distance ["+str(i+1)+"]: ", sum_distances)
         if sum_distances < min_distance:
             best_kclust = kclust
             min_distance = sum_distances
@@ -404,16 +456,14 @@ def test_121(num_exec=10):
 if __name__ == '__main__':
     # *** 1.1.1 ***
     tree = test_111()
-    printtree(tree)
-
-    tree = test_112()
-    printtree(tree)
+    # *** 1.1.2 ***
+    # tree = test_112()
     # *** 1.1.3 ***
     test_113(tree)
     # *** 1.1.4 ***
     test_114()
     # *** 1.1.6 ***
-    # test_116()
+    test_116()
     # *** 1.2.1 ***
     test_121()
 
