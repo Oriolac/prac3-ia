@@ -263,17 +263,26 @@ def test_111():
     class_dict = unique_counts(data_set)
     # Get Gini impurity
     gini = gini_impurity(data_set)
+    # print(gini)
     # Get entropy
     entr = entropy(data_set)
+    # print(entr)
     tree = buildtree(data_set, scoref=entropy)
-    #printtree(tree)
+    printtree(tree)
+    return tree
+
+
+def test_112():
+    data_set, num_entries = read(sys.argv[1])
+    tree = buildtree_ite(data_set)
+    printtree(tree)
     return tree
 
 
 def test_113(tree):
     new_object = ['google', 'UK', 'yes', 25]
     # new_object = ['google', 'UK', 'no', 17]
-    print("Result partition: " + str(classify(new_object, tree)))
+    print("Result partition for " + str(new_object) + " is: " + str(classify(new_object, tree)))
 
 
 def test_114():
@@ -336,7 +345,7 @@ def buildtree_prune(part, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part))
 
 
-def mergedicts (dict1, dict2):
+def mergedicts(dict1, dict2):
     dict = {}
 
     for key in dict1:
@@ -427,14 +436,16 @@ def test_121(num_exec=10):
 if __name__ == '__main__':
     # *** 1.1.1 ***
     tree = test_111()
+    # *** 1.1.2 ***
+    # tree = test_112()
     # *** 1.1.3 ***
-    # test_113(tree)
+    test_113(tree)
     # *** 1.1.4 ***
-    # test_114()
+    test_114()
     # *** 1.1.6 ***
-    # test_116()
+    test_116()
     # *** 1.2.1 ***
-    # test_121()
+    test_121()
 
 
 
