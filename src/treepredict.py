@@ -422,9 +422,9 @@ def test_121(num_exec=10):
     min_distance = sys.float_info.max
     best_kclust = None
     # Restarting policies
-    for _ in range(num_exec):
+    for i in range(num_exec):
         kclust, sum_distances = clusters.kcluster(data, k=10)
-        print("Current distance: ", sum_distances)
+        print("Current distance ["+str(i+1)+"]: ", sum_distances)
         if sum_distances < min_distance:
             best_kclust = kclust
             min_distance = sum_distances
