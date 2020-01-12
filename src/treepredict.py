@@ -205,7 +205,6 @@ def test_performance(testset, testset_len, trainingset):
     tree = buildtree(trainingset)
     num_correct = 0
     for object in testset:
-        print(object)
         real_result = object[len(object)-1]
         result_dict = classify(object, tree)
         obtained_result = list(result_dict.keys())[0]
@@ -261,19 +260,6 @@ def test_114():
     index = 1
     for train_data, train_num in zip(train_data_sets, train_num_entries):
         print("Accuracy " + str(index) + ": " + str(test_performance(test_data_set, test_num_entr, train_data)) + ", entries: " + str(train_num))
-    """    
-    # Training set with 4 examples of each class
-    train_data_set1, train_num_entries1 = read_car_data("data_sets/trainingset-car1.data")
-    # Training set with 8 examples of each class
-    train_data_set2, train_num_entries2 = read_car_data("data_sets/trainingset-car2.data")
-    # Training set with 12 examples of each class
-    train_data_set3, train_num_entries3 = read_car_data("data_sets/trainingset-car3.data")
-    # Training set with 16 examples of each class
-    train_data_set4, train_num_entries4 = read_car_data("data_sets/trainingset-car4.data")
-    # Training set with 20 examples of each class
-    train_data_set5, train_num_entries5 = read_car_data("data_sets/trainingset-car5.data")
-    # Training set with 166 entries
-    train_data_set6, train_num_entries6 = read_car_data("data_sets/trainingset-car6.data")"""
 
 
 def num_prototypes(dict):
