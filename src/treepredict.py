@@ -152,7 +152,7 @@ def get_best_gain(part, scoref):
     return best_gain, best_criteria, best_sets
 
 
-def it_buildtree(part, scoref=entropy, beta=0):
+def buildtree_ite(part, scoref=entropy, beta=0):
     stack = []
     stackDef = []
     stack.append(part)
@@ -198,6 +198,7 @@ def get_best_gain2(part, scoref):
             best_sets = (t_set, f_set)
     
     return best_gain, best_criteria, best_sets
+
 
 def it_buildtree2(part, scoref=entropy, beta=0):
     stack = []
@@ -360,7 +361,7 @@ def entropy_dict(dict):
     return -sum
 
 
-def prunetree(tree, threshold):
+def prune(tree, threshold):
     global pruned
     if tree.get_child(True).is_leaf_node() and tree.get_child(False).is_leaf_node():
         # print("Parent with leaf childs")
@@ -378,8 +379,8 @@ def prunetree(tree, threshold):
             return tree
     elif tree.results is None:
         # print("Internal node")
-        return DecisionNode(tree.col, tree.value, None, prunetree(tree.get_child(True), threshold),
-                            prunetree(tree.get_child(False), threshold))
+        return DecisionNode(tree.col, tree.value, None, prune(tree.get_child(True), threshold),
+                            prune(tree.get_child(False), threshold))
 
     else:
         # print("Leaf node")
@@ -396,11 +397,11 @@ def test_116():
     # Prune the tree until it is not possible to delete more leaves
     pruned_tree = tree
     threshold = 0.4
-    pruned_tree = prunetree(pruned_tree, threshold)
+    pruned_tree = prune(pruned_tree, threshold)
     while pruned > 0:
         times_pruned += 1
         pruned = 0
-        pruned_tree = prunetree(pruned_tree, threshold)
+        pruned_tree = prune(pruned_tree, threshold)
 
     printtree(pruned_tree)
     print("Times tree pruned: ", times_pruned)
